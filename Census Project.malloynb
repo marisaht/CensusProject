@@ -1,0 +1,291 @@
+>>>malloy
+source: Estimates is duckdb.table('./estimates.csv') extend{ 
+
+}
+>>>malloy
+source: Age is duckdb.table('./BY_AGE.csv') extend{ 
+
+}
+>>>malloy
+source: Fam_Size is duckdb.table('./Family_Income_Size.csv') extend{ 
+
+}
+>>>malloy
+source: Fam_Earners is duckdb.table('./Earners.csv') extend{ 
+
+}
+>>>malloy
+source: Nonfamily_Households is duckdb.table('./Nonfamily_Households.csv') extend{ 
+
+}
+
+>>>malloy
+source: Race_Income is duckdb.table('./INCOME_BY_RACEs.csv') extend{ 
+
+}
+>>>malloy
+run: Fam_Size -> {
+  group_by: FamilySize
+  aggregate: Oregon_Avg is avg(Oregon),
+  Washington_Avg is avg(Washington)
+}
+>>>malloy
+# bar_chart
+run: Fam_Size -> {
+  group_by: FamilySize
+  aggregate: Oregon_Avg is avg(Oregon)
+}
+>>>malloy
+# bar_chart
+run: Fam_Size -> {
+  group_by: FamilySize
+  aggregate: Washington_Avg is avg(Washington)
+}
+>>>malloy
+source: FourPersonIncomes is duckdb.sql("""
+  SELECT 
+    state,
+    cast(value as DOUBLE) as income
+  FROM (
+    SELECT *
+    FROM read_csv_auto('Family_Income_Size.csv')
+    WHERE FamilySize = '4-person families'
+  )
+  UNPIVOT (
+    value FOR state IN (
+      Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut,
+      Delaware, "District of Columbia", Florida, Georgia, Hawaii, Idaho, Illinois,
+      Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts,
+      Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada,
+      "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
+      "North Dakota", Ohio, Oklahoma, Oregon, Pennsylvania, "Rhode Island",
+      "South Carolina", "South Dakota", Tennessee, Texas, Utah, Vermont,
+      Virginia, Washington, "West Virginia", Wisconsin, Wyoming
+    )
+  )
+""")
+
+>>>malloy
+run: FourPersonIncomes -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+# bar_chart
+run: FourPersonIncomes -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+
+source: TwoPersonIncomes is duckdb.sql("""
+  SELECT 
+    state,
+    cast(value as DOUBLE) as income
+  FROM (
+    SELECT *
+    FROM read_csv_auto('Family_Income_Size.csv')
+    WHERE FamilySize = '2-person families'
+  )
+  UNPIVOT (
+    value FOR state IN (
+      Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut,
+      Delaware, "District of Columbia", Florida, Georgia, Hawaii, Idaho, Illinois,
+      Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts,
+      Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada,
+      "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
+      "North Dakota", Ohio, Oklahoma, Oregon, Pennsylvania, "Rhode Island",
+      "South Carolina", "South Dakota", Tennessee, Texas, Utah, Vermont,
+      Virginia, Washington, "West Virginia", Wisconsin, Wyoming
+    )
+  )
+""")
+>>>malloy
+run: TwoPersonIncomes -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+# bar_chart
+run: TwoPersonIncomes -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+run: Fam_Earners -> {
+  group_by: IncomeEarners
+  aggregate: Oregon_Earners is avg(Oregon)
+}
+>>>malloy
+run: Fam_Earners -> {
+  group_by: IncomeEarners
+  aggregate: Washington_Earners is avg(Washington)
+}
+>>>malloy
+run: Fam_Earners -> {
+  group_by: IncomeEarners
+  aggregate: Oregon_Earners1 is avg(Oregon),
+  aggregate: Washington_Earners1 is avg(Washington)
+}
+>>>malloy
+source: TwoEarnerIncomes is duckdb.sql("""
+  SELECT 
+    state,
+    cast(value as DOUBLE) as income
+  FROM (
+    SELECT *
+    FROM read_csv_auto('Earners.csv')
+    WHERE IncomeEarners = '2 earners'
+  )
+  UNPIVOT (
+    value FOR state IN (
+      Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut,
+      Delaware, "District of Columbia", Florida, Georgia, Hawaii, Idaho, Illinois,
+      Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts,
+      Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada,
+      "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
+      "North Dakota", Ohio, Oklahoma, Oregon, Pennsylvania, "Rhode Island",
+      "South Carolina", "South Dakota", Tennessee, Texas, Utah, Vermont,
+      Virginia, Washington, "West Virginia", Wisconsin, Wyoming
+    )
+  )
+""")
+>>>malloy
+run: TwoEarnerIncomes -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+# bar_chart
+run: TwoEarnerIncomes -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+run: Nonfamily_Households -> {
+    group_by: Nonfamily
+    aggregate: Avg_Oregon_Nonfamily is avg(Oregon),
+    Avg_Washington_Nonfamily is avg(Washington)
+}
+>>>malloy
+source: SoloHouseholds is duckdb.sql("""
+  SELECT 
+    state,
+    cast(value as DOUBLE) as income
+  FROM (
+    SELECT *
+    FROM read_csv_auto('Nonfamily_Households.csv')
+    WHERE Nonfamily = 'Living alone'
+  )
+  UNPIVOT (
+    value FOR state IN (
+      Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut,
+      Delaware, "District of Columbia", Florida, Georgia, Hawaii, Idaho, Illinois,
+      Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts,
+      Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada,
+      "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
+      "North Dakota", Ohio, Oklahoma, Oregon, Pennsylvania, "Rhode Island",
+      "South Carolina", "South Dakota", Tennessee, Texas, Utah, Vermont,
+      Virginia, Washington, "West Virginia", Wisconsin, Wyoming
+    )
+  )
+""")
+>>>malloy
+run: SoloHouseholds -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+# bar_chart
+run: SoloHouseholds -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+run: Race_Income -> {
+    group_by: Households
+    aggregate: Avg_Oregon_Race is avg(Oregon),
+    Avg_Washington_Race is avg(Washington)
+}
+>>>malloy
+# bar_chart
+run: Race_Income -> {
+    group_by: Households
+    aggregate: Avg_Oregon_Race is avg(Oregon) }
+>>>malloy
+# bar_chart
+run: Race_Income -> {
+    group_by: Households
+    aggregate: Avg_Washington_Race is avg(Washington) }
+>>>malloy
+source: RaceIncomeWhite is duckdb.sql("""
+  SELECT 
+    state,
+    cast(value as DOUBLE) as income
+  FROM (
+    SELECT *
+    FROM read_csv_auto('INCOME_BY_RACEs.csv')
+    WHERE Households = 'White'
+  )
+  UNPIVOT (
+    value FOR state IN (
+      Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut,
+      Delaware, "District of Columbia", Florida, Georgia, Hawaii, Idaho, Illinois,
+      Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts,
+      Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada,
+      "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
+      "North Dakota", Ohio, Oklahoma, Oregon, Pennsylvania, "Rhode Island",
+      "South Carolina", "South Dakota", Tennessee, Texas, Utah, Vermont,
+      Virginia, Washington, "West Virginia", Wisconsin, Wyoming
+    )
+  )
+""")
+>>>malloy
+#Graph showing the average income a White only family makes in each state
+# bar_chart
+run: RaceIncomeWhite -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+source: RaceIncomeAsian is duckdb.sql("""
+  SELECT 
+    state,
+    cast(value as DOUBLE) as income
+  FROM (
+    SELECT *
+    FROM read_csv_auto('INCOME_BY_RACEs.csv')
+    WHERE Households = 'Asian'
+  )
+  UNPIVOT (
+    value FOR state IN (
+      Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut,
+      Delaware, "District of Columbia", Florida, Georgia, Hawaii, Idaho, Illinois,
+      Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts,
+      Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada,
+      "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
+      "North Dakota", Ohio, Oklahoma, Oregon, Pennsylvania, "Rhode Island",
+      "South Carolina", "South Dakota", Tennessee, Texas, Utah, Vermont,
+      Virginia, Washington, "West Virginia", Wisconsin, Wyoming
+    )
+  )
+""")
+>>>malloy
+#Graph showing the average income an Asian only family makes in each state
+# bar_chart
+run: RaceIncomeAsian -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+>>>malloy
