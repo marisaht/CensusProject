@@ -18,30 +18,38 @@ source: Fam_Earners is duckdb.table('./Earners.csv') extend{
 source: Nonfamily_Households is duckdb.table('./Nonfamily_Households.csv') extend{ 
 
 }
-
 >>>malloy
 source: Race_Income is duckdb.table('./INCOME_BY_RACEs.csv') extend{ 
 
 }
 >>>malloy
+#FAMILIES WITH CHILDREN HOUSEHOLD INCOME
+source: Children_Households is duckdb.table('./Families_with_Children.csv') extend{ 
+
+}
+>>>malloy
+#COMPARING OREGON TO WASHINGTON AVERAGE INCOME BASED ON FAMILY SIZE
 run: Fam_Size -> {
   group_by: FamilySize
   aggregate: Oregon_Avg is avg(Oregon),
   Washington_Avg is avg(Washington)
 }
 >>>malloy
+#BAR CHART SHOWING OREGONS'S FAMILY SIZE AVERAGE INCOME
 # bar_chart
 run: Fam_Size -> {
   group_by: FamilySize
   aggregate: Oregon_Avg is avg(Oregon)
 }
 >>>malloy
+#BAR CHART SHOWING WASHINGTONS'S FAMILY SIZE AVERAGE INCOME
 # bar_chart
 run: Fam_Size -> {
   group_by: FamilySize
   aggregate: Washington_Avg is avg(Washington)
 }
 >>>malloy
+#CREATING NEW TABLE THAT COMPARES ALL 4 PERSON FAMILY INCOME AVERAGES IN EACH STATE
 source: FourPersonIncomes is duckdb.sql("""
   SELECT 
     state,
@@ -66,12 +74,14 @@ source: FourPersonIncomes is duckdb.sql("""
 """)
 
 >>>malloy
+#TABLE SHOWING 4 PERSON FAMILY INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
 run: FourPersonIncomes -> {
   group_by: state
   aggregate: avg_income is avg(income)
   order_by: avg_income desc
 }
 >>>malloy
+#BAR CHART SHOWING 4 PERSON FAMILY INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
 # bar_chart
 run: FourPersonIncomes -> {
   group_by: state
@@ -80,6 +90,7 @@ run: FourPersonIncomes -> {
 }
 >>>malloy
 
+#CREATING NEW TABLE THAT COMPARES ALL 2 PERSON FAMILY INCOME AVERAGES IN EACH STATE
 source: TwoPersonIncomes is duckdb.sql("""
   SELECT 
     state,
@@ -103,12 +114,14 @@ source: TwoPersonIncomes is duckdb.sql("""
   )
 """)
 >>>malloy
+#TABLE SHOWING 2 PERSON FAMILY INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
 run: TwoPersonIncomes -> {
   group_by: state
   aggregate: avg_income is avg(income)
   order_by: avg_income desc
 }
 >>>malloy
+#BAR CHART SHOWING 2 PERSON FAMILY INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
 # bar_chart
 run: TwoPersonIncomes -> {
   group_by: state
@@ -116,22 +129,14 @@ run: TwoPersonIncomes -> {
   order_by: avg_income desc
 }
 >>>malloy
-run: Fam_Earners -> {
-  group_by: IncomeEarners
-  aggregate: Oregon_Earners is avg(Oregon)
-}
->>>malloy
-run: Fam_Earners -> {
-  group_by: IncomeEarners
-  aggregate: Washington_Earners is avg(Washington)
-}
->>>malloy
+#COMPARING OREGON TO WASHINGTON AVERAGE INCOME BASED ON INCOME EARNERS
 run: Fam_Earners -> {
   group_by: IncomeEarners
   aggregate: Oregon_Earners1 is avg(Oregon),
   aggregate: Washington_Earners1 is avg(Washington)
 }
 >>>malloy
+#CREATING NEW TABLE THAT COMPARES ALL MULTIPLE EARNERS INCOME AVERAGES IN EACH STATE
 source: TwoEarnerIncomes is duckdb.sql("""
   SELECT 
     state,
@@ -155,12 +160,14 @@ source: TwoEarnerIncomes is duckdb.sql("""
   )
 """)
 >>>malloy
+#TABLE SHOWING MULTIPLE EARNERS INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
 run: TwoEarnerIncomes -> {
   group_by: state
   aggregate: avg_income is avg(income)
   order_by: avg_income desc
 }
 >>>malloy
+#TABLE SHOWING MULTIPLE EARNERS INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
 # bar_chart
 run: TwoEarnerIncomes -> {
   group_by: state
@@ -168,12 +175,53 @@ run: TwoEarnerIncomes -> {
   order_by: avg_income desc
 }
 >>>malloy
+#COMPARING OREGON TO WASHINGTON AVERAGE INCOME BASED ON
 run: Nonfamily_Households -> {
     group_by: Nonfamily
     aggregate: Avg_Oregon_Nonfamily is avg(Oregon),
     Avg_Washington_Nonfamily is avg(Washington)
 }
 >>>malloy
+#CREATING NEW TABLE THAT COMPARES ALL NONFAMILY INDIVIDUALS NOT LIVING ALONE INCOME AVERAGES IN EACH STATE
+source: MultipleHouseholds is duckdb.sql("""
+  SELECT 
+    state,
+    cast(value as DOUBLE) as income
+  FROM (
+    SELECT *
+    FROM read_csv_auto('Nonfamily_Households.csv')
+    WHERE Nonfamily = 'Not living alone'
+  )
+  UNPIVOT (
+    value FOR state IN (
+      Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut,
+      Delaware, "District of Columbia", Florida, Georgia, Hawaii, Idaho, Illinois,
+      Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts,
+      Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada,
+      "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
+      "North Dakota", Ohio, Oklahoma, Oregon, Pennsylvania, "Rhode Island",
+      "South Carolina", "South Dakota", Tennessee, Texas, Utah, Vermont,
+      Virginia, Washington, "West Virginia", Wisconsin, Wyoming
+    )
+  )
+""")
+>>>malloy
+#TABLE SHOWING ALL NONFAMILY INDIVIDUALS NOT LIVING ALONE INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
+run: MultipleHouseholds -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+#TABLE SHOWING ALL NONFAMILY INDIVIDUALS NOT LIVING ALONE INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
+# bar_chart
+run: MultipleHouseholds -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+#CREATING NEW TABLE THAT COMPARES ALL NONFAMILY INDIVIDUALS LIVING ALONE INCOME AVERAGES IN EACH STATE
 source: SoloHouseholds is duckdb.sql("""
   SELECT 
     state,
@@ -197,12 +245,15 @@ source: SoloHouseholds is duckdb.sql("""
   )
 """)
 >>>malloy
+#TABLE SHOWING ALL NONFAMILY INDIVIDUALS LIVING ALONE INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
 run: SoloHouseholds -> {
   group_by: state
   aggregate: avg_income is avg(income)
   order_by: avg_income desc
 }
 >>>malloy
+
+#TABLE SHOWING ALL NONFAMILY INDIVIDUALS LIVING ALONE INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
 # bar_chart
 run: SoloHouseholds -> {
   group_by: state
@@ -210,22 +261,26 @@ run: SoloHouseholds -> {
   order_by: avg_income desc
 }
 >>>malloy
+#COMPARING OREGON TO WASHINGTON AVERAGE INCOME BASED ON RACE
 run: Race_Income -> {
     group_by: Households
     aggregate: Avg_Oregon_Race is avg(Oregon),
     Avg_Washington_Race is avg(Washington)
 }
 >>>malloy
+#BAR CHART SHOWING OREGON'S AVERAGE INCOME BASED ON RACE
 # bar_chart
 run: Race_Income -> {
     group_by: Households
     aggregate: Avg_Oregon_Race is avg(Oregon) }
 >>>malloy
+#BAR CHART SHOWING WASHINGTON'S AVERAGE INCOME BASED ON RACE
 # bar_chart
 run: Race_Income -> {
     group_by: Households
     aggregate: Avg_Washington_Race is avg(Washington) }
 >>>malloy
+#CREATING NEW TABLE THAT COMPARES ALL WHITE FAMILY INCOME AVERAGES IN EACH STATE
 source: RaceIncomeWhite is duckdb.sql("""
   SELECT 
     state,
@@ -249,7 +304,7 @@ source: RaceIncomeWhite is duckdb.sql("""
   )
 """)
 >>>malloy
-#Graph showing the average income a White only family makes in each state
+#GRAPH SHOWING THE AVERAGE INCOME A WHITE ONLY FAMILY MAKES IN EACH STATE
 # bar_chart
 run: RaceIncomeWhite -> {
   group_by: state
@@ -257,6 +312,7 @@ run: RaceIncomeWhite -> {
   order_by: avg_income desc
 }
 >>>malloy
+#CREATING NEW TABLE THAT COMPARES ALL ASIAN FAMILIES INCOME AVERAGES IN EACH STATE
 source: RaceIncomeAsian is duckdb.sql("""
   SELECT 
     state,
@@ -280,7 +336,7 @@ source: RaceIncomeAsian is duckdb.sql("""
   )
 """)
 >>>malloy
-#Graph showing the average income an Asian only family makes in each state
+#GRAPH SHOWING THE AVERAGE INCOME AN ASIAN ONLY FAMILY MAKES IN EACH STATE
 # bar_chart
 run: RaceIncomeAsian -> {
   group_by: state
@@ -288,4 +344,96 @@ run: RaceIncomeAsian -> {
   order_by: avg_income desc
 }
 >>>malloy
+#CREATING NEW TABLE THAT COMPARES ALL AFRICAN AMERICAN FAMILIES INCOME AVERAGES IN EACH STATE
+source: RaceIncomeBlack is duckdb.sql("""
+  SELECT 
+    state,
+    cast(value as DOUBLE) as income
+  FROM (
+    SELECT *
+    FROM read_csv_auto('INCOME_BY_RACEs.csv')
+    WHERE Households = 'Black or African American'
+  )
+  UNPIVOT (
+    value FOR state IN (
+      Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut,
+      Delaware, "District of Columbia", Florida, Georgia, Hawaii, Idaho, Illinois,
+      Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts,
+      Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada,
+      "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
+      "North Dakota", Ohio, Oklahoma, Oregon, Pennsylvania, "Rhode Island",
+      "South Carolina", "South Dakota", Tennessee, Texas, Utah, Vermont,
+      Virginia, Washington, "West Virginia", Wisconsin, Wyoming
+    )
+  )
+""")
+
 >>>malloy
+#GRAPH SHOWING THE AVERAGE INCOME AN AFRICAN AMERICAN ONLY FAMILY MAKES IN EACH STATE
+# bar_chart
+run: RaceIncomeBlack -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+#COMPARING OREGON TO WASHINGTON AVERAGE INCOME BASED ON FAMILY SIZE WITH CHILDREN
+run: Children_Households -> {
+  group_by: Families_with_Children
+  aggregate: Oregon_Avg is avg(Oregon),
+  Washington_Avg is avg(Washington)
+}
+>>>malloy
+#BAR CHART SHOWING OREGON'S AVERAGE INCOME BASED ON FAMILY SIZE WITH CHILDREN
+# bar_chart
+run: Children_Households -> {
+  group_by: Families_with_Children
+  aggregate: Oregon_Avg is avg(Oregon)
+  
+}
+>>>malloy
+#BAR CHART SHOWING WASHINGTON'S AVERAGE INCOME BASED ON FAMILY SIZE WITH CHILDREN
+# bar_chart
+run: Children_Households -> {
+  group_by: Families_with_Children
+  aggregate: Washington_Avg is avg(Washington) 
+  }
+>>>malloy
+#CREATING NEW TABLE THAT COMPARES ALL MARRIED FAMILIES INCOME AVERAGES IN EACH STATE
+source: MarriedFamilies is duckdb.sql("""
+  SELECT 
+    state,
+    cast(value as DOUBLE) as income
+  FROM (
+    SELECT *
+    FROM read_csv_auto('Families_with_Children.csv')
+    WHERE Families_with_Children = 'Married-couple families'
+  )
+  UNPIVOT (
+    value FOR state IN (
+      Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut,
+      Delaware, "District of Columbia", Florida, Georgia, Hawaii, Idaho, Illinois,
+      Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts,
+      Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada,
+      "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
+      "North Dakota", Ohio, Oklahoma, Oregon, Pennsylvania, "Rhode Island",
+      "South Carolina", "South Dakota", Tennessee, Texas, Utah, Vermont,
+      Virginia, Washington, "West Virginia", Wisconsin, Wyoming
+    )
+  )
+""")
+>>>malloy
+#TABLE SHOWING MARRIED FAMILIES INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
+run: MarriedFamilies -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
+>>>malloy
+#BAR CHART SHOWING MARRIED FAMILIES INCOME AVERAGES IN EACH STATE, FROM HIGHEST TO LOWEST
+# bar_chart
+run: MarriedFamilies -> {
+  group_by: state
+  aggregate: avg_income is avg(income)
+  order_by: avg_income desc
+}
